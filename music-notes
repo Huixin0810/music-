@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>梦幻音乐会：节奏大PK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+
+        body {
+            background-color: #fdf2f8; 
+            font-family: 'ZCOOL KuaiLe', 'Comic Sans MS', cursive, sans-serif;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #game-container {
+            width: 95vw;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(180deg, #e0f2fe 0%, #fdf2f8 100%); 
+            border-radius: 50px;
+            box-shadow: 0 40px 80px rgba(244, 114, 182, 0.2);
+            position: relative;
+            overflow: hidden;
+            border: 15px solid #fbcfe8; 
+        }
+
+        .game-title {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            color: #ffffff; 
+            text-shadow: 
+                3px 3px 0px #be185d, 
+                -3px -3px 0px #be185d, 
+                3px -3px 0px #be185d, 
+                -3px 3px 0px #be185d,
+                0px 5px 0px #9d174d,
+                0px 10px 20px rgba(157, 23, 77, 0.4); 
+            letter-spacing: 8px;
+            -webkit-text-stroke: 1px #9d174d; 
+        }
+
+        /* 梦幻云朵 */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.8;
+            filter: blur(5px);
+            animation: moveCloud 20s linear infinite;
+            z-index: 0;
+        }
+        @keyframes moveCloud {
+            from { transform: translateX(-200px); }
+            to { transform: translateX(110vw); }
+        }
+
+        .stage-floor {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 20%;
+            background: linear-gradient(90deg, #fbcfe8 0%, #ddd6fe 50%, #bae6fd 100%);
+            border-top: 8px solid white;
+            z-index: 5;
+        }
+
+        .curtain {
+            position: absolute;
+            top: -10%;
+            width: 18%;
+            height: 120%;
+            background: #f472b6;
+            border-radius: 80px;
+            box-shadow: inset -15px 0 30px rgba(0,0,0,0.1);
+            z-index: 35;
+        }
+        .curtain-left { left: -6%; }
+        .curtain-right { right: -6%; }
+        .curtain-top {
+            top: -5%;
+            left: 0;
+            width: 100%;
+            height: 18%;
+            background: #f472b6;
+            border-radius: 0 0 100px 100px;
+            z-index: 36;
+        }
+
+        .musician-character {
+            position: absolute;
+            bottom: 10%;
+            font-size: 5.5rem;
+            z-index: 10;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            animation: jelly 3s ease-in-out infinite;
+        }
+        @keyframes jelly {
+            0%, 100% { transform: scale(1, 1) translateY(0); }
+            30% { transform: scale(1.2, 0.8) translateY(0); }
+            50% { transform: scale(0.9, 1.1) translateY(-20px); }
+            80% { transform: scale(1.05, 0.95) translateY(0); }
+        }
+
+        /* 题目卡片：改为横向排列 */
+        .note-card {
+            background: white;
+            color: #ec4899;
+            border: 8px solid #f9a8d4;
+            border-radius: 40px;
+            box-shadow: 0 15px 0 #fbcfe8;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: row; /* 横向 */
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            padding: 20px 40px;
+        }
+
+        .drawing-area {
+            background: white;
+            border: 8px solid #ddd6fe;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 15px 0 #ede9fe;
+        }
+
+        .btn-jelly {
+            background: #fb7185;
+            color: white;
+            padding: 12px 35px;
+            border-radius: 30px;
+            border-bottom: 8px solid #e11d48;
+            font-size: 1.5rem;
+            font-weight: 900;
+            transition: all 0.1s;
+            cursor: pointer;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-jelly:hover { background: #fda4af; }
+        .btn-jelly:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+
+        #ui-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        .hidden { display: none !important; }
+
+        .star {
+            position: absolute;
+            pointer-events: none;
+            animation: starScale 0.6s ease-out forwards;
+        }
+        @keyframes starScale {
+            0% { transform: scale(0) rotate(0); opacity: 1; }
+            100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+        }
+
+        .floating-note {
+            position: absolute;
+            pointer-events: none;
+            animation: floatUp 15s linear infinite;
+            z-index: 0;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0); opacity: 0.3; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="cloud" style="top: 20%; width: 150px; height: 60px; animation-delay: -2s;"></div>
+    <div class="cloud" style="top: 40%; width: 200px; height: 80px; animation-delay: -10s;"></div>
+    
+    <div class="stage-floor"></div>
+    <div class="curtain curtain-left"></div>
+    <div class="curtain curtain-right"></div>
+    <div class="curtain curtain-top"></div>
+    <div id="bg-notes"></div>
+
+    <div class="musician-character" style="left: 10%; animation-delay: 0s;">🐱</div>
+    <div class="musician-character" style="left: 22%; animation-delay: 0.4s; font-size: 4rem;">🐥</div>
+    <div class="musician-character" style="right: 22%; animation-delay: 0.2s; font-size: 4rem;">🐨</div>
+    <div class="musician-character" style="right: 10%; animation-delay: 0.7s;">🐹</div>
+
+    <div id="ui-layer">
+        <!-- 初始屏幕 -->
+        <div id="start-screen" class="flex flex-col items-center justify-center h-full">
+            <div class="bg-white/95 p-10 rounded-[60px] border-[12px] border-pink-300 flex flex-col items-center shadow-2xl">
+                <div class="text-8xl mb-4 animate-bounce">🌈</div>
+                <h1 class="game-title text-8xl font-black mb-4">梦幻节奏对对碰</h1>
+                <p class="text-pink-600 mb-10 text-3xl font-bold bg-white/50 px-6 py-2 rounded-full">画出你的音符，让音乐飞扬！</p>
+                
+                <div class="flex gap-10 mb-10">
+                    <div class="flex flex-col items-center">
+                        <label class="text-pink-700 font-black mb-3 text-xl">小选手 A</label>
+                        <input type="number" id="p1-id" min="1" max="34" value="1" class="w-28 p-4 rounded-3xl border-4 border-pink-200 text-center text-3xl font-black text-pink-500 shadow-inner">
+                    </div>
+                    <div class="text-6xl self-end mb-2 text-pink-300 font-black italic">PK</div>
+                    <div class="flex flex-col items-center">
+                        <label class="text-pink-700 font-black mb-3 text-xl">小选手 B</label>
+                        <input type="number" id="p2-id" min="1" max="34" value="2" class="w-28 p-4 rounded-3xl border-4 border-pink-200 text-center text-3xl font-black text-pink-500 shadow-inner">
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="btn-jelly text-4xl px-20 py-8">开启派对 ✨</button>
+            </div>
+        </div>
+
+        <!-- 游戏对局界面 -->
+        <div id="game-play" class="hidden flex flex-col h-full">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-5 bg-white/95 p-4 rounded-full border-4 border-pink-400 shadow-lg">
+                    <span class="bg-pink-500 text-white px-5 py-2 rounded-full font-black text-2xl" id="display-p1">1号</span>
+                    <span class="text-6xl font-black text-pink-600" id="score-p1">0</span>
+                </div>
+                
+                <div id="round-info" class="text-3xl font-black text-white bg-pink-500 px-12 py-2 rounded-full border-4 border-white shadow-lg">
+                    第 1 / 5 场
+                </div>
+
+                <div class="flex items-center gap-5 bg-white/95 p-4 rounded-full border-4 border-blue-400 shadow-lg">
+                    <span class="text-6xl font-black text-blue-600" id="score-p2">0</span>
+                    <span class="bg-blue-500 text-white px-5 py-2 rounded-full font-black text-2xl" id="display-p2">2号</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center flex-1">
+                <!-- 题目区域：整合为一排 -->
+                <div id="question-card" class="note-card mb-6">
+                    <div id="note-visual" class="text-8xl filter drop-shadow-md">?</div>
+                    <div class="flex flex-col">
+                        <div id="note-name" class="text-5xl font-black text-pink-600 leading-tight">准备好了吗</div>
+                        <div id="note-beat" class="text-pink-400 text-2xl font-black italic">点击开始绘制</div>
+                    </div>
+                </div>
+
+                <!-- 绘图区域 -->
+                <div class="flex flex-col items-center">
+                    <div class="bg-white/95 px-10 py-2 rounded-t-[30px] border-x-8 border-t-8 border-pink-400 text-3xl font-black text-pink-600 shadow-sm" id="turn-indicator">
+                        请 1 号选手绘制
+                    </div>
+                    <div class="drawing-area">
+                        <canvas id="draw-canvas" width="600" height="300" class="rounded-[30px] cursor-crosshair touch-action-none bg-slate-50"></canvas>
+                    </div>
+                    <div class="flex gap-8 mt-6">
+                        <button onclick="clearCanvas()" class="px-10 py-3 bg-white border-4 border-pink-400 text-pink-500 rounded-3xl font-black text-2xl">擦掉重来</button>
+                        <button onclick="submitAnswer()" class="btn-jelly">画好啦！🍭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结算界面 -->
+        <div id="result-screen" class="hidden flex flex-col items-center justify-center h-full">
+            <div class="bg-white/95 p-16 rounded-[70px] border-[12px] border-pink-300 shadow-2xl flex flex-col items-center text-center relative">
+                <div class="text-9xl mb-8 animate-bounce">🎀</div>
+                <h2 class="game-title text-7xl font-black mb-6">超级巨星诞生！</h2>
+                <div id="winner-text" class="text-5xl text-pink-600 font-black mb-12">1号选手 赢得了全场掌声！</div>
+                <button onclick="resetGame()" class="btn-jelly text-4xl px-20 py-8">回到后台</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function createBgParticles() {
+        const container = document.getElementById('bg-notes');
+        const items = ['✨', '🌸', '🎵', '⭐', '🎈'];
+        for (let i = 0; i < 25; i++) {
+            const p = document.createElement('div');
+            p.className = 'floating-note';
+            p.innerText = items[Math.floor(Math.random() * items.length)];
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.animationDelay = Math.random() * 15 + 's';
+            p.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+            container.appendChild(p);
+        }
+    }
+    createBgParticles();
+
+    document.addEventListener('click', (e) => {
+        const star = document.createElement('div');
+        star.className = 'star text-2xl';
+        star.innerText = '✨';
+        star.style.left = (e.clientX - 10) + 'px';
+        star.style.top = (e.clientY - 10) + 'px';
+        document.body.appendChild(star);
+        setTimeout(() => star.remove(), 600);
+    });
+
+    let audioCtx = null;
+    function playCuteTone(freq, duration) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine'; 
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    const noteFreqs = { 'whole': 261.63, 'half': 329.63, 'quarter': 392.00 };
+    const notes = [
+        { id: 'whole', name: '全音符', beats: 4, emoji: '◯' },
+        { id: 'half', name: '二分音符', beats: 2, emoji: 'd' },
+        { id: 'quarter', name: '四分音符', beats: 1, emoji: '♩' }
+    ];
+
+    let gameState = {
+        p1Id: 1, p2Id: 2, scores: [0, 0],
+        currentRound: 1, maxRounds: 5,
+        currentPlayer: 0, currentNote: null, isDrawing: false
+    };
+
+    const canvas = document.getElementById('draw-canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+    canvas.addEventListener('touchend', stopDrawing);
+
+    function startDrawing(e) {
+        gameState.isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.lineWidth = 15;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = gameState.currentPlayer === 0 ? '#f472b6' : '#60a5fa';
+    }
+
+    function draw(e) {
+        if (!gameState.isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
+    }
+
+    function stopDrawing() { gameState.isDrawing = false; }
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+    function startGame() {
+        gameState.p1Id = document.getElementById('p1-id').value || 1;
+        gameState.p2Id = document.getElementById('p2-id').value || 2;
+        document.getElementById('display-p1').innerText = gameState.p1Id + '号';
+        document.getElementById('display-p2').innerText = gameState.p2Id + '号';
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-play').classList.remove('hidden');
+        startNewRound();
+    }
+
+    function startNewRound() {
+        gameState.currentNote = notes[Math.floor(Math.random() * notes.length)];
+        gameState.currentPlayer = 0;
+        updateUI();
+        clearCanvas();
+    }
+
+    function updateUI() {
+        document.getElementById('round-info').innerText = `第 ${gameState.currentRound} / ${gameState.maxRounds} 场`;
+        document.getElementById('score-p1').innerText = gameState.scores[0];
+        document.getElementById('score-p2').innerText = gameState.scores[1];
+        
+        const pId = gameState.currentPlayer === 0 ? gameState.p1Id : gameState.p2Id;
+        document.getElementById('turn-indicator').innerText = `请 ${pId} 号选手画：${gameState.currentNote.name}`;
+        document.getElementById('turn-indicator').style.color = gameState.currentPlayer === 0 ? '#db2777' : '#2563eb';
+        document.getElementById('turn-indicator').style.borderColor = gameState.currentPlayer === 0 ? '#ec4899' : '#3b82f6';
+
+        document.getElementById('note-visual').innerText = "?";
+        document.getElementById('note-name').innerText = gameState.currentNote.name;
+        document.getElementById('note-beat').innerText = `${gameState.currentNote.beats} 拍`;
+    }
+
+    function submitAnswer() {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const hasDrawn = Array.from(imageData.data).some(channel => channel !== 0);
+        if (!hasDrawn) return;
+
+        playCuteTone(noteFreqs[gameState.currentNote.id], gameState.currentNote.beats * 0.4);
+        gameState.scores[gameState.currentPlayer]++;
+        document.getElementById('note-visual').innerText = gameState.currentNote.emoji;
+
+        document.getElementById('question-card').style.transform = 'scale(1.05)';
+        
+        setTimeout(() => {
+            document.getElementById('question-card').style.transform = 'scale(1)';
+            if (gameState.currentPlayer === 0) {
+                gameState.currentPlayer = 1;
+                clearCanvas();
+                updateUI();
+            } else {
+                if (gameState.currentRound < gameState.maxRounds) {
+                    gameState.currentRound++;
+                    startNewRound();
+                } else {
+                    showFinalResult();
+                }
+            }
+        }, 800);
+    }
+
+    function showFinalResult() {
+        document.getElementById('game-play').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        let msg = "";
+        if (gameState.scores[0] > gameState.scores[1]) msg = `${gameState.p1Id}号选手 表现完美！`;
+        else if (gameState.scores[1] > gameState.scores[0]) msg = `${gameState.p2Id}号选手 节奏大师！`;
+        else msg = "两位音乐天才平分秋色！";
+        document.getElementById('winner-text').innerText = msg;
+    }
+
+    function resetGame() {
+        gameState.scores = [0, 0];
+        gameState.currentRound = 1;
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>
